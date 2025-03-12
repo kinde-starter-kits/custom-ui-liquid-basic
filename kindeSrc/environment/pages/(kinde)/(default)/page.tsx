@@ -107,7 +107,6 @@ async function renderPeopleList(people: string[]): Promise<string> {
         <a href="{{ person | prepend: "https://example.com/" }}">
           {{ person | capitalize }}
         </a>
-        {% kindeLoginForm %}
       </li>
       {%- endfor %}
     </ul>
