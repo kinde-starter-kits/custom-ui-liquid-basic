@@ -1,7 +1,7 @@
 "use server";
 
 import { Liquid, Template, TagToken } from "liquidjs";
-import React from "react";
+import React, { JSX } from "react";
 import { renderToString } from "react-dom/server.browser";
 
 /**
@@ -51,6 +51,7 @@ function createLiquidEngine(): Liquid {
  * Custom tag interface
  */
 interface CustomTag {
+  tagToken: TagToken;
   parse: (tagToken: TagToken) => void;
   render: () => Promise<string>;
 }
@@ -107,6 +108,7 @@ async function renderPeopleList(people: string[]): Promise<string> {
         <a href="{{ person | prepend: "https://example.com/" }}">
           {{ person | capitalize }}
         </a>
+        {% kindeLoginForm %}
       </li>
       {%- endfor %}
     </ul>
