@@ -3,6 +3,7 @@
 import { Liquid, Template, TagToken } from "liquidjs";
 import React, { JSX } from "react";
 import { renderToString } from "react-dom/server.browser";
+import { getKindeWidget } from "@kinde/infrastructure";
 
 /**
  * Page configuration settings for server components
@@ -21,16 +22,6 @@ interface RequestEvent {
     search?: string;
   };
 }
-
-/**
- * Login form component
- * @returns {JSX.Element} The login form React component
- */
-const LoginForm = (): JSX.Element => {
-  return (
-    <div className="login-form-container">{/* Login form content here */}</div>
-  );
-};
 
 /**
  * Creates a new Liquid.js engine instance with configured settings
@@ -62,12 +53,12 @@ interface CustomTag {
  */
 function registerCustomTags(engine: Liquid): void {
   // Register the React component as a custom tag
-  engine.registerTag("kindeLoginForm", {
+  engine.registerTag("kindeWidget", {
     parse: function (tagToken: TagToken): void {
       this.tagToken = tagToken;
     },
     render: async function (): Promise<string> {
-      return renderToString(<LoginForm />);
+      return renderToString(getKindeWidget());
     },
   } as CustomTag);
 
@@ -108,7 +99,7 @@ async function renderPeopleList(people: string[]): Promise<string> {
         <a href="{{ person | prepend: "https://example.com/" }}">
           {{ person | capitalize }}
         </a>
-        {% kindeLoginForm %}
+        {% kindeWidget %}
       </li>
       {%- endfor %}
     </ul>
