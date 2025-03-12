@@ -118,22 +118,6 @@ async function renderPeopleList(people: string[]): Promise<string> {
 }
 
 /**
- * Processes URL parameters
- * @param {string} paramString - URL parameter string
- * @returns {Record<string, string>} Processed parameters
- */
-function processUrlParams(paramString: string): Record<string, string> {
-  const searchParams = new URLSearchParams(paramString);
-  const params: Record<string, string> = {};
-
-  for (const [key, value] of searchParams.entries()) {
-    params[key] = value;
-  }
-
-  return params;
-}
-
-/**
  * Main request handler
  * @param {RequestEvent} event - Request event
  * @returns {Promise<string>} Rendered response
@@ -144,7 +128,7 @@ export default async function handleRequest(
   // Process query parameters
   const paramsString =
     event?.url?.search || "q=URLUtils.searchParams&topic=api";
-  const params = processUrlParams(paramsString);
+  // const params = processUrlParams(paramsString);
 
   // Render the people list
   const renderedContent = await renderPeopleList(["John", "Jane", "Alex"]);
