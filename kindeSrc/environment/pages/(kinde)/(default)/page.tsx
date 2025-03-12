@@ -1,9 +1,8 @@
 "use server";
 
-import { Liquid, Template, TagToken } from "liquidjs";
-import React, { JSX } from "react";
-import { renderToString } from "react-dom/server.browser";
 import { getKindeWidget } from "@kinde/infrastructure";
+import { Liquid, TagToken, Template } from "liquidjs";
+import { renderToString } from "react-dom/server.browser";
 
 /**
  * Page configuration settings for server components
@@ -87,25 +86,17 @@ async function renderLiquidTemplate(
 }
 
 /**
- * Renders a people list using Liquid templates
- * @param {string[]} people - Array of people names
+ * Renders the Kinde Auth page using Liquid templates
  * @returns {Promise<string>} Rendered HTML
  */
-async function renderPeopleList(people: string[]): Promise<string> {
+async function renderPage(): Promise<string> {
   const templateString = `
-    <ul class="people-list">
-      {%- for person in people %}
-      <li class="person-item">
-        <a href="{{ person | prepend: "https://example.com/" }}">
-          {{ person | capitalize }}
-        </a>
-        {% kindeWidget %}
-      </li>
-      {%- endfor %}
-    </ul>
+  <div>
+    {% kindeWidget %}
+  </div>
   `;
 
-  return renderLiquidTemplate(templateString, { people });
+  return renderLiquidTemplate(templateString, {});
 }
 
 /**
@@ -122,7 +113,7 @@ export default async function handleRequest(
   // const params = processUrlParams(paramsString);
 
   // Render the people list
-  const renderedContent = await renderPeopleList(["John", "Jane", "Alex"]);
+  const renderedContent = await renderPage();
 
   return renderedContent;
 }
