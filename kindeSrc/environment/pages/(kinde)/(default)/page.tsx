@@ -1,6 +1,10 @@
 "use server";
 
-import { getKindeWidget } from "@kinde/infrastructure";
+import {
+  getKindeRequiredCSS,
+  getKindeRequiredJS,
+  getKindeWidget,
+} from "@kinde/infrastructure";
 import { Liquid, TagToken, Template } from "liquidjs";
 import { renderToString } from "react-dom/server.browser";
 
@@ -61,6 +65,18 @@ function registerCustomTags(engine: Liquid): void {
     },
   } as CustomTag);
 
+  engine.registerTag("kindeCSSJS", {
+    parse: function (tagToken: TagToken): void {
+      this.tagToken = tagToken;
+    },
+    render: async function (): Promise<string> {
+      return (
+        renderToString(getKindeRequiredCSS()) +
+        renderToString(getKindeRequiredJS())
+      );
+    },
+  } as CustomTag);
+
   // Register additional custom filters if needed
   engine.registerFilter("customFilter", (value: string): string => {
     // Custom filter implementation
@@ -91,9 +107,21 @@ async function renderLiquidTemplate(
  */
 async function renderPage(): Promise<string> {
   const templateString = `
-  <div>
-    {% kindeWidget %}
-  </div>
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Kinde Auth</title>
+    {% kindeCSSJS %}
+  </head>
+  <body>
+    <h1>Kinde Auth</h1>
+
+    <div>
+      {% kindeWidget %}
+    </div>
+  </body>
+  </html>
   `;
 
   return renderLiquidTemplate(templateString, {});
