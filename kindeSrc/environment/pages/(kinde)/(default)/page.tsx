@@ -1,48 +1,159 @@
 "use server";
+
+import { Liquid, Template, TagToken } from "liquidjs";
 import React from "react";
 import { renderToString } from "react-dom/server.browser";
-import { Liquid } from "liquidjs";
 
+/**
+ * Page configuration settings for server components
+ */
 export const pageSettings = {
   bindings: {
     url: {},
   },
 };
 
-const LoginForm = () => {
+/**
+ * Event object interface
+ */
+interface RequestEvent {
+  url?: {
+    search?: string;
+  };
+}
+
+/**
+ * Login form component
+ * @returns {JSX.Element} The login form React component
+ */
+const LoginForm = (): JSX.Element => {
   return (
-    <html>
-      <div></div>
-    </html>
+    <div className="login-form-container">{/* Login form content here */}</div>
   );
 };
 
-async function kindeRenderLiquid(people) {
-  const engine = new Liquid();
-  const tpl = engine.parse(`
-			<ul>
-			{%- for person in p %}
-			<li>
-				<a href="{{person | prepend: "https://example.com/"}}">
-				  {{ person | capitalize }}
-				</a>
-        <%!!! kindeLoginForm  !!!%>
-			</li>
-			{%- endfor %}
-			</ul>
-		`);
-  return engine.render(tpl, { p: people });
+/**
+ * Creates a new Liquid.js engine instance with configured settings
+ * @returns {Liquid} Configured Liquid engine instance
+ */
+function createLiquidEngine(): Liquid {
+  return new Liquid({
+    extname: ".liquid",
+    cache: process.env.NODE_ENV === "production",
+    strictFilters: true,
+    strictVariables: true,
+    trimTagRight: true,
+    trimTagLeft: true,
+  });
 }
 
-export default async function handleRequest(event: any) {
-  const paramsString = "q=URLUtils.searchParams&topic=api";
-  const searchParams = new URLSearchParams(paramsString);
-  // Iterating the search parameters
-  for (const p of searchParams) {
-    console.log(p);
+/**
+ * Custom tag interface
+ */
+interface CustomTag {
+  parse: (tagToken: TagToken) => void;
+  render: () => Promise<string>;
+}
+
+/**
+ * Register custom tags and filters
+ * @param {Liquid} engine - The Liquid engine instance
+ */
+function registerCustomTags(engine: Liquid): void {
+  // Register the React component as a custom tag
+  engine.registerTag("kindeLoginForm", {
+    parse: function (tagToken: TagToken): void {
+      this.tagToken = tagToken;
+    },
+    render: async function (): Promise<string> {
+      return renderToString(<LoginForm />);
+    },
+  } as CustomTag);
+
+  // Register additional custom filters if needed
+  engine.registerFilter("customFilter", (value: string): string => {
+    // Custom filter implementation
+    return value;
+  });
+}
+
+/**
+ * Renders a template using Liquid.js with provided data
+ * @param {string} templateString - The Liquid template string
+ * @param {Record<string, any>} data - Data to pass to the template
+ * @returns {Promise<string>} Rendered HTML
+ */
+async function renderLiquidTemplate(
+  templateString: string,
+  data: Record<string, any>
+): Promise<string> {
+  const engine = createLiquidEngine();
+  registerCustomTags(engine);
+
+  const template: Template[] = engine.parse(templateString);
+  return engine.render(template, data);
+}
+
+/**
+ * Renders a people list using Liquid templates
+ * @param {string[]} people - Array of people names
+ * @returns {Promise<string>} Rendered HTML
+ */
+async function renderPeopleList(people: string[]): Promise<string> {
+  const templateString = `
+    <ul class="people-list">
+      {%- for person in people %}
+      <li class="person-item">
+        <a href="{{ person | prepend: "https://example.com/" }}">
+          {{ person | capitalize }}
+        </a>
+        {% kindeLoginForm %}
+      </li>
+      {%- endfor %}
+    </ul>
+  `;
+
+  return renderLiquidTemplate(templateString, { people });
+}
+
+/**
+ * Processes URL parameters
+ * @param {string} paramString - URL parameter string
+ * @returns {Record<string, string>} Processed parameters
+ */
+function processUrlParams(paramString: string): Record<string, string> {
+  const searchParams = new URLSearchParams(paramString);
+  const params: Record<string, string> = {};
+
+  for (const [key, value] of searchParams.entries()) {
+    params[key] = value;
   }
 
-  const liquids = await kindeRenderLiquid(["John"]);
+  return params;
+}
 
-  return liquids;
+/**
+ * Main request handler
+ * @param {RequestEvent} event - Request event
+ * @returns {Promise<string>} Rendered response
+ */
+export default async function handleRequest(
+  event: RequestEvent
+): Promise<string> {
+  try {
+    // Process query parameters
+    const paramsString =
+      event?.url?.search || "q=URLUtils.searchParams&topic=api";
+    const params = processUrlParams(paramsString);
+
+    // Render the people list
+    const renderedContent = await renderPeopleList(["John", "Jane", "Alex"]);
+
+    return renderedContent;
+  } catch (error) {
+    console.error("Error processing request:", error);
+    return `<div class="error">An error occurred: ${
+      error instanceof Error ? error.message : String(error)
+    }</div>`;
+  }
 }
