@@ -24,11 +24,11 @@ async function kindeRenderLiquid(people) {
 			{%- for person in p %}
 			<li>
 				<a href="{{person | prepend: "https://example.com/"}}">
-				{{ person | capitalize }}
-				 <%!!! kindeLoginForm  !!!%>
+				  {{ person | capitalize }}
 				</a>
+        <%!!! kindeLoginForm  !!!%>
 			</li>
-			{%- endfor%}
+			{%- endfor %}
 			</ul>
 		`);
   return engine.render(tpl, { p: people });
@@ -41,10 +41,8 @@ export default async function handleRequest(event: any) {
   for (const p of searchParams) {
     console.log(p);
   }
-  const blah = LoginForm();
-  var heh = renderToString(blah);
 
   const liquids = await kindeRenderLiquid(["John"]);
 
-  return heh + liquids;
+  return liquids;
 }
