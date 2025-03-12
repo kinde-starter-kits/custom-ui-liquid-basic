@@ -141,20 +141,13 @@ function processUrlParams(paramString: string): Record<string, string> {
 export default async function handleRequest(
   event: RequestEvent
 ): Promise<string> {
-  try {
-    // Process query parameters
-    const paramsString =
-      event?.url?.search || "q=URLUtils.searchParams&topic=api";
-    const params = processUrlParams(paramsString);
+  // Process query parameters
+  const paramsString =
+    event?.url?.search || "q=URLUtils.searchParams&topic=api";
+  const params = processUrlParams(paramsString);
 
-    // Render the people list
-    const renderedContent = await renderPeopleList(["John", "Jane", "Alex"]);
+  // Render the people list
+  const renderedContent = await renderPeopleList(["John", "Jane", "Alex"]);
 
-    return renderedContent;
-  } catch (error) {
-    console.error("Error processing request:", error);
-    return `<div class="error">An error occurred: ${
-      error instanceof Error ? error.message : String(error)
-    }</div>`;
-  }
+  return renderedContent;
 }
